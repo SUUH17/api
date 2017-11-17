@@ -20,6 +20,7 @@ async function loadDatabase() {
     collateral: 300,
   };
   const item3 = {
+    itemID: 2,
     name: 'name3',
     location: 'address3',
     price: 2,
@@ -67,11 +68,7 @@ itemsRouter
   return res.json({ ...item1, itemID });
 });
 
-<<<<<<< 59865ecde1bf454acd5aaff885a0251da2743d31
-export default itemsRouter;
-=======
 // Load database
 console.log('Loading database');
 loadDatabase();
 export default itemsRouter;
->>>>>>> Add initial database integration
