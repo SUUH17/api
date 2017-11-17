@@ -13,6 +13,12 @@ const item2 = {
   price: 10,
   collateral: 300,
 };
+const item3 = {
+  name: 'name3',
+  location: 'address3',
+  price: 2,
+  collateral: 400,
+};
 
 itemsRouter
 
