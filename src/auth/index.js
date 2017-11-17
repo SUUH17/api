@@ -29,7 +29,6 @@ authRouter
     return res.status(400).json({'homo': ':DD'});
 
   const item = await db.findOne({ name: req.body.username, password: req.body.password });
-  console.log(item);
   if (item) {
     return res.cookie('session', item._id, -1).json({'jes': 'onnistu'});
   } else {
