@@ -26,7 +26,7 @@ server
 })
 .use('/auth', authRouter(db))
 .use('/items', itemsRouter(db))
-.use('/borrow', borrowRouter(db))
+.use('/loans', borrowRouter(db))
 .listen(port, () => {
   console.log(`Server running on ${port}`);
 });
