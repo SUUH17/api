@@ -17,9 +17,9 @@ function itemsRouter(db) {
   // Create a new item
   .post('/', async (req, res, next) => {
     // Store the parameters from the request
-    const { name, location, price, collateral } = req.body;
+    const { name, location, price, collateral, imageId } = req.body;
     // Insert and return the new item
-    const added = await db.items.insert({ name, location, price, collateral });
+    const added = await db.items.insert({ name, location, price, collateral, imageId });
     return res.json(added);
   })
 
