@@ -5,11 +5,13 @@ function itemsRouter(db) {
   router
   // Get all items
   .get('/', async (req, res, next) => {
-    const items = await db.items.find({});
+    const items = await db.Item.findAll();
+    /*
     for (let i in items) {
       const isLoaned = await db.loans.findOne({ inProgress: true, itemId: items[i]._id });
       items[i].available = !isLoaned;
     }
+    */
 
     return res.json(items);
   })
@@ -21,25 +23,25 @@ function itemsRouter(db) {
     if (!req.cookies['session'])
       return res.status(401).json({ status: 'no session' });
 
-    const user = await db.users.findOne({ _id: req.cookies['session'] });
+    const user = await db.User.findOne({ where: { id: parseInt(req.cookies['session']) }});
     if (!user)
       return res.status(401).json({ status: 'invalid user' });
 
     price = Number(price);
     collateral = Number(collateral);
     // Insert and return the new item
-    const added = await db.items.insert({ name, location, price, collateral, imageId, ownerId: user._id });
+    const added = await db.Item.create({ name, location, price, collateral, imageId, ownerId: user.get('id') });
     return res.json(added);
   })
 
   // Get a single item
   .get('/:itemId', async (req, res, next) => {
     // Store the parameters from the request
-    const itemId = req.params.itemId;
-    const item = await db.items.findOne({ _id: itemId });
+    const itemId = parseInt(req.params.itemId);
+    const item = await db.Item.findOne({ where: { id: itemId }});
     return res.json(item);
   })
-
+/*
   // Update a single item
   .patch('/:itemId', async (req, res, next) => {
     // Store the parameters from the request
@@ -63,7 +65,7 @@ function itemsRouter(db) {
     const removeCount = await db.items.remove({ _id: itemId }, {});
     return res.json(oldItem);
   });
-
+*/
   return router;
 }
 

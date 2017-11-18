@@ -5,7 +5,7 @@ function imagesRouter(db) {
   router
   // Get all items
   .get('/', async (req, res, next) => {
-    const images = await db.images.find({});
+    const images = await db.Image.findAll({ attributes: ['id', 'mimetype'] });
     return res.json(images);
   })
 
@@ -15,22 +15,23 @@ function imagesRouter(db) {
       return res.status(400).json({ status: 'no files uploaded' });
 
     const image = req.files.image;
-    const base64 = image.data.toString('base64');
 
-    const added = await db.images.insert({ base64 });
-    return res.json({ _id: added._id });
+    const added = await db.Image.create({ data: image.data, mimetype: image.mimetype });
+    return res.json({ id: added.get('id') });
   })
 
   // Get a single item
   .get('/:imageId', async (req, res, next) => {
     // Store the parameters from the request
-    const imageId = req.params.imageId;
-    const item = await db.images.findOne({ _id: imageId });
-    const img = Buffer.from(item.base64, 'base64');
+    const imageId = parseInt(req.params.imageId);
+    const item = await db.Image.findOne({ where: { id: imageId }});
+
+    if (!item)
+      return res.status(404).json({ status: '404' });
 
     return res.set('Content-Type', 'image/jpeg')
-             .set('Content-Length', img.length)
-             .send(Buffer.from(item.base64, 'base64'));
+             .set('Content-Length', item.get('data').length)
+             .send(item.get('data'));
   })
 
   // Delete a single item

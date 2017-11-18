@@ -3,17 +3,18 @@ import fetch from 'node-fetch';
 
 function borrowRouter(db) {
   const router = express.Router();
-  const CORDA_IP = '10.66.30.212';
+  const CORDA_IP = process.env.CORDA_IP;
+  console.log(`CORDA_IP = ${CORDA_IP}`);
 
   router
   .get('/', async (req, res, next) => {
-    const loans = await db.loans.find({});
+    const loans = await db.Loan.findAll();
     return res.json(loans);
   })
   // Borrow item
   .post('/borrow/:itemId', async (req, res, next) => {
-    const itemId = req.params.itemId;
-    const item = await db.items.findOne({ _id: itemId });
+    const itemId = parseInt(req.params.itemId);
+    const item = await db.Item.findOne({ where: { id: itemId }});
 
     if (!item)
       return res.status(404).json({'item': 'not found :D'});
@@ -21,21 +22,28 @@ function borrowRouter(db) {
     if (!req.cookies['session'])
       return res.status(401).json({'mee pois': '>D'});
 
-    const user = await db.users.findOne({'_id': req.cookies['session']});
+    const user = await db.User.findOne({ where: {id: parseInt(req.cookies['session'])}});
     if (!user)
        return res.status(401).json({'user': 'not found'});
 
-    if (await db.loans.findOne({ inProgress: true, itemId }))
+    if (await db.Loan.findOne({ where: { inProgress: true, itemId }}))
       return res.status(401).json({ 'status': 'item already borrowed' })
 
-    const addr = `http://${CORDA_IP}:${user.cordaPort}/api/v1/borrow`;
+    const addr = `http://${CORDA_IP}:${user.get('cordaPort')}/api/v1/borrow`;
 
     console.log(item);
-    const borrowee = await db.users.findOne({ '_id': item.ownerId });
+    const borrowee = await db.User.findOne({ where: { id: item.get('ownerId') }});
     if (!borrowee)
       return res.status(609).json({ 'vittu': 'aha' });
 
-    const payload = {item: item._id, time: parseInt(Date.now() / 1000) + 60 * 60 * 24, hourPrice: item.price, contractId: 0, partyName: borrowee.partyName};
+    const payload = {
+                       item: item.get('id'),
+                       time: parseInt(Date.now() / 1000) + 60 * 60 * 24,
+                       hourPrice: item.get('price'),
+                       contractId: 0,
+                       partyName: borrowee.get('partyName'),
+    };
+
     const payloadStr = Object.keys(payload).map((k) => encodeURIComponent(k) + '=' + encodeURIComponent(payload[k])).join('&');
 
     // send payload to addr
@@ -44,8 +52,8 @@ function borrowRouter(db) {
       const json = await resp.json();
       const stateId = json.stateId;
 
-      const newLoan = { borrowerId: user._id, borroweeId: item.ownerId, stateId, itemId, inProgress: true };
-      await db.loans.insert(newLoan);
+      const newLoan = { borrowerId: user.get('id'), borroweeId: item.get('ownerId'), stateId, itemId, inProgress: true };
+      await db.Loan.create(newLoan);
     } catch(err) {
       console.log(err);
       return res.status(500).json({ status: 'corda API not available' });
@@ -54,20 +62,22 @@ function borrowRouter(db) {
 
     return res.json({'status': 'OK'});
   })
+  // Return item
   .post('/return/:itemId', async (req, res, next) => {
-    const itemId = req.params.itemId;
-    const item = await db.items.findOne({ _id: itemId });
+    const itemId = parseInt(req.params.itemId);
+    const item = await db.Item.findOne({ where: { id: itemId }});
+    const userId = parseInt(req.cookies['session']);
 
-    const borrowee = await db.users.findOne({'_id': req.cookies['session']});
+    const borrowee = await db.User.findOne({ where: { id: userId }});
     if (!borrowee)
       return res.status(401).json({'user': 'not found'});
 
-    const loan = await db.loans.findOne({ inProgress: true, borroweeId: borrowee._id, itemId });
+    const loan = await db.Loan.findOne({ where: { inProgress: true, borroweeId: borrowee.get('id'), itemId }});
     if (!loan)
       return res.status(404).json({ 'status': 'no matching loan found' });
 
     const addr = `http://${CORDA_IP}:${borrowee.cordaPort}/api/v1/return`;
-    const payload = { state: loan.stateId };
+    const payload = { state: loan.get('stateId') };
     const payloadStr = Object.keys(payload).map((k) => encodeURIComponent(k) + '=' + encodeURIComponent(payload[k])).join('&');
 
     try {
@@ -75,12 +85,12 @@ function borrowRouter(db) {
       const json = await resp.json();
       const stateId = json.stateId;
 
-      await db.loans.update({ _id: loan._id }, { $set: { inProgress: false }}, {});
+      await loan.updateAttributes({ inProgress: false });
 
       return res.json({ status: 'returned' });
     } catch(err) {
       console.log(err);
-      return res.status(500).json({ status: 'failed :D' });
+      return res.status(500).json({ status: 'failed to return' });
     }
 
   })

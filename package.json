@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "main": "index.js",
   "repository": "git@github.com:SUUH17/api.git",
-  "author": "Laged <parkkila.matti@gmail.com>",
+  "author": "allu <aleksi.tella@gmail.com>",
   "license": "MIT",
   "dependencies": {
     "babel-cli": "^6.26.0",
@@ -14,9 +14,9 @@
     "cors": "^2.8.4",
     "express": "^4.16.2",
     "express-fileupload": "^0.3.0",
-    "nedb": "^1.8.0",
-    "nedb-promise": "^2.0.1",
-    "node-fetch": "^1.7.3"
+    "node-fetch": "^1.7.3",
+    "sequelize": "^4.22.8",
+    "sqlite3": "^3.1.13"
   },
   "scripts": {
     "build": "./node_modules/.bin/babel src -d dist",
