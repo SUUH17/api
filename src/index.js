@@ -10,6 +10,9 @@ import borrowRouter from './borrow/index';
 import imagesRouter from './images/index';
 import models from './models';
 
+const CORS_ORIGIN = process.env.CORS_ORIGIN || 'http://localhost:8080';
+console.log(`CORS_ORIGIN = ${CORS_ORIGIN}`);
+
 const sequelize = new Sequelize('db', null, null, {
   dialect: 'sqlite',
   storage: './data.sqlite',
@@ -32,7 +35,7 @@ const port = 5001;
 const server = express();
 
 server
-.use(cors({ origin: 'http://localhost:8080', credentials: true }))
+.use(cors({ origin: CORS_ORIGIN, credentials: true }))
 .use(bodyParser.json())
 .disable('x-powered-by')
 .use(cookieParser())
