@@ -5,13 +5,11 @@ function itemsRouter(db) {
   router
   // Get all items
   .get('/', async (req, res, next) => {
-    const items = await db.Item.findAll();
-    /*
-    for (let i in items) {
-      const isLoaned = await db.loans.findOne({ inProgress: true, itemId: items[i]._id });
-      items[i].available = !isLoaned;
-    }
-    */
+    const items = await db.Item.findAll({
+      attributes: Object.keys(db.Item.attributes).concat([
+        [db.sequelize.literal('(SELECT COUNT("Loans"."id") FROM "Loans" WHERE "Loans"."itemId" = "Item"."id" AND "Loans"."inProgress" = 1) = 0'), 'available']
+      ])
+    });
 
     return res.json(items);
   })
@@ -38,7 +36,11 @@ function itemsRouter(db) {
   .get('/:itemId', async (req, res, next) => {
     // Store the parameters from the request
     const itemId = parseInt(req.params.itemId);
-    const item = await db.Item.findOne({ where: { id: itemId }});
+    const item = await db.Item.findOne({ where: { id: itemId },
+                                         attributes: Object.keys(db.Item.attributes).concat([
+                                           [db.sequelize.literal('(SELECT COUNT("Loans"."id") FROM "Loans" WHERE "Loans"."itemId" = "Item"."id" AND "Loans"."inProgress" = 1) = 0'), 'available']
+                                         ])
+                                       });
     return res.json(item);
   })
 /*
@@ -56,16 +58,15 @@ function itemsRouter(db) {
     const newItem = await db.items.findOne({ _id: itemId });
     return res.json(newItem);
   })
-
+*/
   // Delete a single item
   .delete('/:itemId', async (req, res, next) => {
-    const itemId = req.params.itemId;
+    const itemId = parseInt(req.params.itemId);
     // Return dummy data
-    const oldItem = await db.items.findOne({ _id: itemId });
+    const oldItem = await db.Item.findOne({ where: { id: itemId }});
     const removeCount = await db.items.remove({ _id: itemId }, {});
     return res.json(oldItem);
   });
-*/
   return router;
 }
 

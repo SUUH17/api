@@ -16,7 +16,8 @@ const sequelize = new Sequelize('db', null, null, {
   logging: false,
 });
 
-const db = models(sequelize);
+let db = models(sequelize);
+db['sequelize'] = sequelize;
 
 function initDB() {
   Promise.all(Object.keys(db).map( key => db[key].sync({ force: false }))).then(() => {
