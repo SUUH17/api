@@ -17,9 +17,18 @@ function itemsRouter(db) {
   // Create a new item
   .post('/', async (req, res, next) => {
     // Store the parameters from the request
-    const { name, location, price, collateral, imageId } = req.body;
+    let { name, location, price, collateral, imageId } = req.body;
+    if (!req.cookies['session'])
+      return res.status(401).json({ status: 'no session' });
+
+    const user = await db.users.findOne({ _id: req.cookies['session'] });
+    if (!user)
+      return res.status(401).json({ status: 'invalid user' });
+
+    price = Number(price);
+    collateral = Number(collateral);
     // Insert and return the new item
-    const added = await db.items.insert({ name, location, price, collateral, imageId });
+    const added = await db.items.insert({ name, location, price, collateral, imageId, ownerId: user._id });
     return res.json(added);
   })
 
