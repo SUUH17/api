@@ -13,6 +13,7 @@
     "cookie-parser": "^1.4.3",
     "cors": "^2.8.4",
     "express": "^4.16.2",
+    "express-fileupload": "^0.3.0",
     "nedb": "^1.8.0",
     "nedb-promise": "^2.0.1",
     "node-fetch": "^1.7.3"

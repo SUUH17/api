@@ -6,6 +6,11 @@ function itemsRouter(db) {
   // Get all items
   .get('/', async (req, res, next) => {
     const items = await db.items.find({});
+    for (let i in items) {
+      const isLoaned = await db.loans.findOne({ inProgress: true, itemId: items[i]._id });
+      items[i].available = !isLoaned;
+    }
+
     return res.json(items);
   })
 
@@ -36,7 +41,7 @@ function itemsRouter(db) {
     Object.keys(params).forEach((key) => (params[key] === undefined) && delete params[key]);
     // Return dummy data
     const oldItem = await db.items.findOne({ _id: itemId });
-    const updateCount = await db.items.update({ _id: itemId }, { $set: params });
+    const updateCount = await db.items.update({ _id: itemId }, { $set: params });
     const newItem = await db.items.findOne({ _id: itemId });
     return res.json(newItem);
   })
