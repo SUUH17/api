@@ -1,6 +1,61 @@
 import express from 'express';
 import fetch from 'node-fetch';
 
+async function transferMoni(amount) {
+  // Request Init
+
+  const timestamp = new Date().toISOString();
+  let initOps = {
+    amount: amount,
+    subject: "rent",
+    currency: "EUR",
+    payerIban: "FI1958400720090508",
+    valueDate: timestamp,
+    receiverBic: "OKOYFIHH",
+    receiverIban: "FI2350009421535899",
+    receiverName: "Jere",
+  };
+
+  const headers = {
+    'x-session-id': '98765',
+    'x-api-key': 'mV7CfwG6oXQrQIF7A50tMLpfOLhW9cWP',
+    'x-authorization': 'b6910384440ce06f495976f96a162e2ab1bafbb4',
+    'Content-Type': 'application/json',
+    'Accept': 'application/json',
+  };
+
+  const init = await fetch('https://sandbox.apis.op-palvelut.fi/v1/payments/initiate',
+                           { method: 'POST', headers: headers, body: JSON.stringify(initOps) });
+  const initJson = await init.json();
+  if (initJson.message || initJson.fault)
+    return false;
+
+  const paymentId = initJson.paymentId;
+
+  let confirmOps = {
+    amount: amount,
+    subject: "rent",
+    currency: "EUR",
+    payerIban: "FI1958400720090508",
+    paymentId: paymentId,
+    valueDate: timestamp,
+    receiverBic: "OKOYFIHH",
+    receiverIban: "FI2350009421535899",
+    receiverName: "Jere",
+  };
+
+  const confirm = await fetch('https://sandbox.apis.op-palvelut.fi/v1/payments/confirm',
+                              { method: 'POST', headers: headers, body: JSON.stringify(confirmOps) });
+  const confirmJson = await confirm.json();
+  console.log(confirmJson);
+  if (confirmJson.message || confirmJson.fault)
+    return false;
+
+  return true;
+}
+
+transferMoni(10).then( moi => console.log(moi) );
+
 function borrowRouter(db) {
   const router = express.Router();
   const CORDA_IP = process.env.CORDA_IP;
@@ -59,7 +114,6 @@ function borrowRouter(db) {
       return res.status(500).json({ status: 'corda API not available' });
     }
 
-
     return res.json({'status': 'OK'});
   })
   // Return item
@@ -84,6 +138,9 @@ function borrowRouter(db) {
       const resp = await fetch(addr + '?' + payloadStr, { method: 'GET' });
       const json = await resp.json();
       const stateId = json.stateId;
+
+      if (!(await transferMoni(100)))
+        return res.json({ status: 'no moni' });
 
       await loan.updateAttributes({ inProgress: false });
 
