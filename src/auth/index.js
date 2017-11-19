@@ -3,12 +3,6 @@ import express from 'express';
 function authRouter(db) {
   const router = express.Router();
   router
-  // Get all users
-  .get('/', async (req, res, next) => {
-    const users = await db.User.findAll();
-    return res.json(users);
-  })
-
   // Login
   .post('/login', async (req, res, next) => {
     console.log(req.body);

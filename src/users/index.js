@@ -5,7 +5,7 @@ function usersRouter(db) {
   router
   // Get all users
   .get('/', async (req, res, next) => {
-    const users = await db.User.findAll();
+    const users = await db.User.findAll({ attributes: ['id', 'name', 'firstName', 'lastName'] });
     return res.json(users);
   })
 
@@ -13,7 +13,7 @@ function usersRouter(db) {
   .get('/:userId', async (req, res, next) => {
     const userId = parseInt(req.params.userId);
 
-    const user = await db.User.findOne({ where: { id: userId }});
+    const user = await db.User.findOne({ where: { id: userId }, attributes: ['id', 'name', 'firstName', 'lastName'] });
     if (user) {
       return res.json(user);
     } else {
