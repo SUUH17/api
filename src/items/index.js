@@ -41,6 +41,8 @@ function itemsRouter(db) {
                                            [db.sequelize.literal('(SELECT COUNT("Loans"."id") FROM "Loans" WHERE "Loans"."itemId" = "Item"."id" AND "Loans"."inProgress" = 1) = 0'), 'available']
                                          ])
                                        });
+    if (!item) return res.status(404).json({ status: '404' });
+
     return res.json(item);
   })
 /*
