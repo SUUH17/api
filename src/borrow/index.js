@@ -105,6 +105,9 @@ function borrowRouter(db) {
       const json = await resp.json();
       const stateId = json.stateId;
 
+      if (!stateId)
+        return res.status(405).json({ status: 'corda API not available' });
+      
       const newLoan = { borrowerId: user.get('id'), borroweeId: item.get('ownerId'), stateId, itemId, inProgress: true };
       await db.Loan.create(newLoan);
     } catch(err) {
