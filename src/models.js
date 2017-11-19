@@ -3,6 +3,8 @@ import Sequelize from 'sequelize';
 function models(sequelize) {
   const User = sequelize.define('User', {
     name: Sequelize.STRING,
+    firstName: Sequelize.STRING,
+    lastName: Sequelize.STRING,
     password: Sequelize.STRING,
     cordaPort: Sequelize.STRING,
     partyName: Sequelize.STRING,

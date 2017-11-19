@@ -54,8 +54,6 @@ async function transferMoni(amount) {
   return true;
 }
 
-transferMoni(10).then( moi => console.log(moi) );
-
 function borrowRouter(db) {
   const router = express.Router();
   const CORDA_IP = process.env.CORDA_IP;

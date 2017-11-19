@@ -6,6 +6,7 @@ import cookieParser from 'cookie-parser';
 import fileUpload from 'express-fileupload';
 import itemsRouter from './items/index';
 import authRouter from './auth/index';
+import usersRouter from './users/index';
 import borrowRouter from './borrow/index';
 import imagesRouter from './images/index';
 import models from './models';
@@ -44,6 +45,7 @@ server
   return res.json({ status: 'up' });
 })
 .use('/auth', authRouter(db))
+.use('/users', usersRouter(db))
 .use('/items', itemsRouter(db))
 .use('/loans', borrowRouter(db))
 .use('/images', imagesRouter(db))
